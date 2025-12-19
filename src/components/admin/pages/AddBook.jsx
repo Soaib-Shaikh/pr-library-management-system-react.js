@@ -53,7 +53,7 @@ function AddBook() {
               <input
                 type="number"
                 min={1}
-                max={10}
+                max={25}
                 name="count"
                 className="form-control"
                 value={book.count || ''}
