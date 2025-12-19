@@ -31,17 +31,36 @@ export const useBooks = () => {
         let newList = []
 
         if (book.id) {
-            newList = list.map((val) => (val.id == book.id ? book : val))
+            // ✅ EDIT MODE (merge old + new)
+            newList = list.map((val) =>
+                val.id === book.id
+                    ? {
+                        ...val,        // old data (borrowed, borrowedBy etc.)
+                        ...book        // updated form data
+                    }
+                    : val
+            )
         } else {
-            newList = [...list, { ...book, id: Date.now(), count: book.count || 1 }]
+            // ✅ ADD MODE
+            newList = [
+                ...list,
+                {
+                    ...book,
+                    id: Date.now(),
+                    count: Number(book.count) || 1,
+                    borrowed: 0,
+                    borrowedBy: []
+                }
+            ]
         }
 
         setList(newList)
         localStorage.setItem('Books', JSON.stringify(newList))
-        setCurrentPage(1);
+        setCurrentPage(1)
         setBook({})
         navigate('/admin/view-books')
     }
+
 
     const handleDelete = (id) => {
         const newList = list.filter((val) => val.id != id)
