@@ -11,8 +11,8 @@ Deployment link:- https://pr-library-management-system-react.vercel.app/
 
 Use these demo credentials for local testing or a demo instance only. Do NOT use these in production.
 
-- Email: admin@gmail.com
-- Password: admin123
+- Email: soaib1002@gmail.com
+- Password: 1002
 
 If your app stores credentials in a backend, update the seed/admin user there. If authentication is mocked in the frontend for demo, replace with secure backend auth before production.
 
