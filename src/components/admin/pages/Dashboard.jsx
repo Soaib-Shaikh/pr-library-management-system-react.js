@@ -11,29 +11,26 @@ import {
 } from 'recharts'
 import { useBooks } from '../../../hooks/useBooks'
 
-function Dashboard() {
+function Dashboard({ list = [] }) {
 
-  // ✅ FULL LIST DIRECTLY FROM HOOK
   const {
-    list,
+    currentItem,
     currentPage,
     totalPage,
     setCurrentPage
   } = useBooks()
 
-  // ✅ SAFETY CONVERSION
   const safeList = list.map(b => ({
     ...b,
     count: Math.max(0, Number(b.count) || 0),
     borrowed: Math.max(0, Number(b.borrowed) || 0)
   }))
 
-  // ✅ PAGINATION (ONLY FOR TABLE)
+
   const itemsPerPage = 5
   const startIndex = (currentPage - 1) * itemsPerPage
   const paginatedList = safeList.slice(startIndex, startIndex + itemsPerPage)
 
-  // ✅ DASHBOARD CALCULATIONS (FULL DATA)
   const totalBooks = safeList.length
   const totalStock = safeList.reduce((s, b) => s + b.count, 0)
   const borrowedBooks = safeList.reduce((s, b) => s + b.borrowed, 0)
@@ -49,8 +46,6 @@ function Dashboard() {
 
   return (
     <div className="dashboard-container">
-
-      {/* ===== CARDS ===== */}
       <div className="row row-cols-1 row-cols-sm-2 row-cols-md-5 g-4 mb-4">
 
         <div className="col">
@@ -95,7 +90,7 @@ function Dashboard() {
 
       </div>
 
-      {/* ===== CHART ===== */}
+
       <div className="mb-5">
         <h4 className="text-center mb-3">Books Stock Chart</h4>
 
@@ -111,7 +106,6 @@ function Dashboard() {
         </ResponsiveContainer>
       </div>
 
-      {/* ===== TABLE ===== */}
       <div className="table-responsive">
         <table className="table table-bordered table-hover text-center align-middle">
           <thead className="table-dark">
@@ -132,7 +126,7 @@ function Dashboard() {
               const available = book.count - book.borrowed
 
               return (
-                <tr key={book.id}>
+                <tr key={book.id || index}>
                   <td>{startIndex + index + 1}</td>
                   <td>{book.bookName}</td>
                   <td>{book.author}</td>
@@ -141,7 +135,7 @@ function Dashboard() {
                   <td>{book.borrowed}</td>
                   <td>{available}</td>
                   <td>
-                    {book.borrowed === 0 ? (
+                    {book.borrowed == 0 ? (
                       <span className="badge bg-success">Available</span>
                     ) : book.borrowed < book.count ? (
                       <span className="badge bg-warning text-dark">
@@ -156,12 +150,10 @@ function Dashboard() {
             })}
           </tbody>
         </table>
-
-        {/* ===== PAGINATION ===== */}
-        <div className="d-flex justify-content-center gap-2 mt-3 flex-wrap">
+        <div className="d-flex justify-content-center gap-2 mt-3">
           <button
             className="btn btn-secondary"
-            disabled={currentPage === 1}
+            disabled={currentPage == 1}
             onClick={() => setCurrentPage(currentPage - 1)}
           >
             Prev
@@ -185,52 +177,190 @@ function Dashboard() {
             Next
           </button>
         </div>
+
+        <div className="mt-5">
+          <h4 className="text-center mb-3">Users</h4>
+          <div className="table-responsive">
+            <table className="table table-bordered table-hover text-center align-middle">
+              <thead className="table-dark">
+                <tr>
+                  <th>Sr.No</th>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {JSON.parse(localStorage.getItem('users'))?.length > 0 ? (
+                  JSON.parse(localStorage.getItem('users')).map((user, index) => (
+                    <tr key={user.id || index}>
+                      <td>{index + 1}</td>
+                      <td>{user.username}</td>
+                      <td>{user.email}</td>
+                      <td>
+                        <button
+                          className="btn btn-danger"
+                          onClick={() => {
+                            const oldUsers = JSON.parse(localStorage.getItem('users')) || []
+                            const newUsers = oldUsers.filter(u => u.id !== user.id)
+                            localStorage.setItem('users', JSON.stringify(newUsers))
+                            window.location.reload() // simple way to refresh table
+                          }}
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="4">No users available</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+
       </div>
 
-      {/* ===== STYLES ===== */}
       <style>{`
-        .dashboard-container { padding: 10px; }
+  .dashboard-container {
+    padding: 10px;
+  }
 
-        .dashboard-card {
-          padding: 26px 16px;
-          border-radius: 16px;
-          text-align: center;
-          color: #fff;
-          transition: 0.3s;
-        }
+  /* ===== DASHBOARD CARDS ===== */
+  .dashboard-card {
+    position: relative;
+    padding: 26px 16px;
+    border-radius: 16px;
+    text-align: center;
+    color: #fff;
+    overflow: hidden;
+    transition: all 0.3s ease;
+  }
 
-        .dashboard-card:hover {
-          transform: translateY(-6px);
-          box-shadow: 0 12px 28px rgba(0,0,0,0.25);
-        }
+  .dashboard-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 28px rgba(0,0,0,0.25);
+  }
 
-        .card-icon {
-          width: 55px;
-          height: 55px;
-          margin: 0 auto 12px;
-          background: rgba(255,255,255,0.25);
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 24px;
-        }
+  .card-icon {
+    width: 55px;
+    height: 55px;
+    margin: 0 auto 12px;
+    background: rgba(255,255,255,0.25);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+  }
 
-        .dashboard-card h3 { font-size: 30px; font-weight: 700; }
+  .dashboard-card p {
+    margin: 0;
+    font-size: 13px;
+    opacity: 0.9;
+  }
 
-        .blue { background: linear-gradient(135deg, #0d6efd, #084298); }
-        .green { background: linear-gradient(135deg, #198754, #0f5132); }
-        .purple { background: linear-gradient(135deg, #6f42c1, #432874); }
-        .orange { background: linear-gradient(135deg, #fd7e14, #b45309); }
-        .red { background: linear-gradient(135deg, #dc3545, #7a0916); }
+  .dashboard-card h3 {
+    margin-top: 8px;
+    font-size: 30px;
+    font-weight: 700;
+  }
 
-        table { min-width: 700px; }
-        th, td { white-space: nowrap; font-size: 14px; }
+  /* COLORS */
+  .dashboard-card.blue {
+    background: linear-gradient(135deg, #0d6efd, #084298);
+  }
 
-        @media (max-width: 576px) {
-          .dashboard-card h3 { font-size: 26px; }
-        }
-      `}</style>
+  .dashboard-card.green {
+    background: linear-gradient(135deg, #198754, #0f5132);
+  }
+
+  .dashboard-card.purple {
+    background: linear-gradient(135deg, #6f42c1, #432874);
+  }
+
+  .dashboard-card.orange {
+    background: linear-gradient(135deg, #fd7e14, #b45309);
+  }
+
+  .dashboard-card.red {
+    background: linear-gradient(135deg, #dc3545, #7a0916);
+  }
+
+  /* ===== TABLE RESPONSIVE ===== */
+  .table-responsive {
+    overflow-x: auto;
+  }
+
+  table {
+    min-width: 700px;
+  }
+
+  table th,
+  table td {
+    white-space: nowrap;
+    vertical-align: middle !important;
+    font-size: 14px;
+  }
+
+  /* ===== PAGINATION ===== */
+  .pagination-wrap {
+    flex-wrap: wrap;
+  }
+
+  /* ===== CHART ===== */
+  .recharts-responsive-container {
+    min-height: 280px;
+  }
+
+  /* ===== MOBILE ===== */
+  @media (max-width: 576px) {
+    .dashboard-card {
+      padding: 22px 14px;
+    }
+
+    .dashboard-card h3 {
+      font-size: 26px;
+    }
+
+    h4 {
+      font-size: 18px;
+    }
+
+    table {
+      font-size: 13px;
+    }
+
+    .btn {
+      padding: 6px 10px;
+      font-size: 13px;
+    }
+  }
+
+  /* ===== TABLET ===== */
+  @media (max-width: 768px) {
+    .dashboard-card h3 {
+      font-size: 28px;
+    }
+
+    table {
+      min-width: 600px;
+    }
+  }
+
+  /* ===== LARGE SCREENS ===== */
+  @media (min-width: 1200px) {
+    .dashboard-container {
+      max-width: 1300px;
+      margin: auto;
+    }
+  }
+`}</style>
+
 
     </div>
   )

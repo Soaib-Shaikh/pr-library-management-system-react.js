@@ -19,18 +19,21 @@ export const useBooks = () => {
   useEffect(() => {
     const oldList = JSON.parse(localStorage.getItem('Books')) || []
 
-    const fixedList = oldList.map(b => ({
-      ...b,
-      count: Number(b.count) || 0,
-      borrowed: Number(b.borrowed) || 0,
-      borrowedBy: Array.isArray(b.borrowedBy) ? b.borrowedBy : []
-    }))
+    const fixedList = oldList.map(b => {
+      const borrowedBy = Array.isArray(b.borrowedBy) ? b.borrowedBy : []
+      return {
+        ...b,
+        count: Number(b.count) || 0,
+        borrowedBy,
+        borrowed: borrowedBy.length // ✅ SINGLE SOURCE OF TRUTH
+      }
+    })
 
     setList(fixedList)
     localStorage.setItem('Books', JSON.stringify(fixedList))
   }, [])
 
-  // ================= FORM =================
+  // ===== FORM =====
   const handleChange = (e) => {
     const { name, value } = e.target
     setBook(prev => ({ ...prev, [name]: value }))
@@ -41,22 +44,20 @@ export const useBooks = () => {
 
     let newList
     if (book.id) {
-      // ✅ EDIT MODE
       newList = list.map(b =>
         b.id === book.id
           ? { ...b, ...book }
           : b
       )
     } else {
-      // ✅ ADD MODE
       newList = [
         ...list,
         {
           ...book,
           id: Date.now(),
           count: Number(book.count) || 1,
-          borrowed: 0,
-          borrowedBy: []
+          borrowedBy: [],
+          borrowed: 0
         }
       ]
     }
@@ -68,7 +69,7 @@ export const useBooks = () => {
     navigate('/admin/view-books')
   }
 
-  // ================= CRUD =================
+  // ===== CRUD =====
   const handleDelete = (id) => {
     const newList = list.filter(b => b.id !== id)
     setList(newList)
@@ -81,10 +82,10 @@ export const useBooks = () => {
     navigate('/admin/add-book')
   }
 
-  // ================= BORROW =================
+  // ===== BORROW BOOK =====
   const handleBorrowBook = (id) => {
     const currentUser = JSON.parse(localStorage.getItem('user'))
-    if (!currentUser || !currentUser.id) {
+    if (!currentUser?.id) {
       alert('Login first')
       return
     }
@@ -96,15 +97,17 @@ export const useBooks = () => {
           return b
         }
 
-        if (b.borrowed >= b.count) {
+        if (b.borrowedBy.length >= b.count) {
           alert('Out of stock')
           return b
         }
 
+        const updatedBorrowedBy = [...b.borrowedBy, currentUser.id]
+
         return {
           ...b,
-          borrowed: b.borrowed + 1,
-          borrowedBy: [...b.borrowedBy, currentUser.id]
+          borrowedBy: updatedBorrowedBy,
+          borrowed: updatedBorrowedBy.length // ✅ FIX
         }
       }
       return b
@@ -114,10 +117,10 @@ export const useBooks = () => {
     localStorage.setItem('Books', JSON.stringify(newList))
   }
 
-  // ================= RETURN SINGLE BOOK =================
+  // ===== RETURN SINGLE BOOK =====
   const handleReturnBook = (id) => {
     const currentUser = JSON.parse(localStorage.getItem('user'))
-    if (!currentUser) return
+    if (!currentUser?.id) return
 
     const newList = list.map(b => {
       if (b.id === id && b.borrowedBy.includes(currentUser.id)) {
@@ -127,8 +130,8 @@ export const useBooks = () => {
 
         return {
           ...b,
-          borrowed: Math.max(0, b.borrowed - 1),
-          borrowedBy: updatedBorrowedBy
+          borrowedBy: updatedBorrowedBy,
+          borrowed: updatedBorrowedBy.length // ✅ FIX
         }
       }
       return b
@@ -138,10 +141,10 @@ export const useBooks = () => {
     localStorage.setItem('Books', JSON.stringify(newList))
   }
 
-  // ================= RETURN ALL USER BOOKS =================
+  // ===== RETURN ALL BOOKS OF USER =====
   const handleRemoveAllBooks = () => {
     const currentUser = JSON.parse(localStorage.getItem('user'))
-    if (!currentUser) return
+    if (!currentUser?.id) return
 
     const newList = list.map(b => {
       if (!b.borrowedBy.includes(currentUser.id)) return b
@@ -152,8 +155,8 @@ export const useBooks = () => {
 
       return {
         ...b,
-        borrowed: updatedBorrowedBy.length,
-        borrowedBy: updatedBorrowedBy
+        borrowedBy: updatedBorrowedBy,
+        borrowed: updatedBorrowedBy.length // ✅ FIX
       }
     })
 
@@ -161,7 +164,6 @@ export const useBooks = () => {
     localStorage.setItem('Books', JSON.stringify(newList))
   }
 
-  // ================= EXPORT =================
   return {
     list,
     book,
