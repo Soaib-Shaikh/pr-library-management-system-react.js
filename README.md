@@ -5,7 +5,7 @@ A simple library management web application built with React and Vite. This proj
 
 ## Deployment
 
-Deployment link:- 
+Deployment link:- https://pr-library-management-system-react.vercel.app/
 
 ## Admin Login (Demo)
 
