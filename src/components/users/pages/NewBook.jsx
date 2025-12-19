@@ -4,29 +4,30 @@ import { useBooks } from '../../../hooks/useBooks'
 function NewBook() {
   const { list, handleBorrowBook } = useBooks()
 
-  const STEP = 4 // kitni books ek baar me add ho
-  const [visibleCount, setVisibleCount] = useState(STEP)
-  const [booksToShow, setBooksToShow] = useState([])
+  const STEP = 4
+  const MAX_VISIBLE = 8
+
+  const [books, setBooks] = useState([])
+  const [startIndex, setStartIndex] = useState(0)
 
   useEffect(() => {
     const availableBooks = list.filter(book => book.count > 0)
-    setBooksToShow(availableBooks)
-    setVisibleCount(STEP) // reset when list changes
+    setBooks(availableBooks)
+    setStartIndex(0) // reset on list change
   }, [list])
 
-  const visibleBooks = booksToShow.slice(0, visibleCount)
+  const visibleBooks = books.slice(startIndex, startIndex + MAX_VISIBLE)
 
   const handleExploreMore = () => {
-    if (visibleCount >= booksToShow.length) {
-      // 🔁 reset
-      setVisibleCount(STEP)
-    } else {
-      // ➕ show next batch
-      setVisibleCount(prev => prev + STEP)
-    }
-  }
+    let nextIndex = startIndex + STEP
 
-  const isAllVisible = visibleCount >= booksToShow.length
+    // agar aage books kam pad rahi ho to reset
+    if (nextIndex + STEP > books.length) {
+      nextIndex = 0
+    }
+
+    setStartIndex(nextIndex)
+  }
 
   return (
     <section className="new-books">
@@ -74,14 +75,13 @@ function NewBook() {
           ))}
         </div>
 
-        {/* ===== LOAD MORE / RESET ===== */}
-        {booksToShow.length > STEP && (
+        {books.length > STEP && (
           <div className="text-center mt-4">
             <button
               className="btn btn-outline-primary px-4"
               onClick={handleExploreMore}
             >
-              {isAllVisible ? 'Show Less' : 'Explore More Books'}
+              Explore More Books
             </button>
           </div>
         )}
@@ -114,15 +114,6 @@ function NewBook() {
         .book-category {
           font-size: 14px;
           color: #555;
-        }
-
-        .btn-primary {
-          background-color: #0d6efd;
-          border: none;
-        }
-
-        .btn-primary:hover {
-          background-color: #084298;
         }
       `}</style>
     </section>
