@@ -6,24 +6,34 @@ export const useBooks = () => {
     const [book, setBook] = useState({})
     const [borrow, setBorrow] = useState([])
     const navigate = useNavigate()
-    const [currentPage, setCurrentPage] = useState(1);
-    let itemsPerPage = 5;
 
-    let itemsOfLastIndex = currentPage * itemsPerPage;
-    let itesOfFirstIindex = itemsOfLastIndex - itemsPerPage;
-    let currentItem = list.slice(itesOfFirstIindex, itemsOfLastIndex);
-    let totalPage = Math.ceil(list.length / itemsPerPage)
+    const [currentPage, setCurrentPage] = useState(1)
+    const itemsPerPage = 5
 
+    const itemsOfLastIndex = currentPage * itemsPerPage
+    const itemsOfFirstIndex = itemsOfLastIndex - itemsPerPage
+    const currentItem = list.slice(itemsOfFirstIndex, itemsOfLastIndex)
+    const totalPage = Math.ceil(list.length / itemsPerPage)
+
+    // 🔥 INITIAL LOAD + EDIT LOAD
     useEffect(() => {
         const oldList = JSON.parse(localStorage.getItem('Books')) || []
         const oldBorrow = JSON.parse(localStorage.getItem('Borrow')) || []
+        const editBook = JSON.parse(localStorage.getItem('editBook'))
+
         setList(oldList)
         setBorrow(oldBorrow)
+
+        // ✅ if edit mode, load book into form
+        if (editBook) {
+            setBook(editBook)
+        }
     }, [])
 
+    // ================= FORM =================
     const handleChange = (e) => {
         const { name, value } = e.target
-        setBook({ ...book, [name]: value })
+        setBook(prev => ({ ...prev, [name]: value }))
     }
 
     const handleSubmit = (e) => {
@@ -31,13 +41,10 @@ export const useBooks = () => {
         let newList = []
 
         if (book.id) {
-            // ✅ EDIT MODE (merge old + new)
-            newList = list.map((val) =>
+            // ✅ EDIT MODE
+            newList = list.map(val =>
                 val.id === book.id
-                    ? {
-                        ...val,        // old data (borrowed, borrowedBy etc.)
-                        ...book        // updated form data
-                    }
+                    ? { ...val, ...book }
                     : val
             )
         } else {
@@ -56,83 +63,87 @@ export const useBooks = () => {
 
         setList(newList)
         localStorage.setItem('Books', JSON.stringify(newList))
-        setCurrentPage(1)
+
+        // ✅ CLEAR EDIT STATE
+        localStorage.removeItem('editBook')
         setBook({})
+        setCurrentPage(1)
+
         navigate('/admin/view-books')
     }
 
-
+    // ================= CRUD =================
     const handleDelete = (id) => {
-        const newList = list.filter((val) => val.id != id)
+        const newList = list.filter(val => val.id !== id)
         setList(newList)
         localStorage.setItem('Books', JSON.stringify(newList))
     }
 
     const handleEdit = (id) => {
-        const editData = list.find((val) => val.id == id)
-        setBook(editData)
+        const editData = list.find(val => val.id === id)
+        if (!editData) return
+
+        // 🔥 STORE TEMP EDIT DATA
+        localStorage.setItem('editBook', JSON.stringify(editData))
         navigate('/admin/add-book')
     }
 
-    // Borrow a book
+    // ================= BORROW =================
     const handleBorrowBook = (id) => {
-        const currentUser = JSON.parse(localStorage.getItem('user')); // logged in user
-        if (!currentUser) return alert('Login first');
+        const currentUser = JSON.parse(localStorage.getItem('user'))
+        if (!currentUser) return alert('Login first')
 
         const newList = list.map(b => {
             if (b.id === id) {
-                let borrowedBy = b.borrowedBy ? [...b.borrowedBy] : [];
+                const borrowedBy = b.borrowedBy ? [...b.borrowedBy] : []
 
-                // Check if user already borrowed this book
                 if (borrowedBy.includes(currentUser.id)) {
-                    alert('You have already borrowed this book');
-                    return b; // return unchanged
+                    alert('You already borrowed this book')
+                    return b
                 }
 
                 if (b.borrowed >= b.count) {
-                    alert('Out of Stock');
-                    return b;
+                    alert('Out of Stock')
+                    return b
                 }
 
-                borrowedBy.push(currentUser.id); // add user to borrowedBy
-                return { ...b, borrowed: b.borrowed + 1, borrowedBy };
+                borrowedBy.push(currentUser.id)
+                return { ...b, borrowed: b.borrowed + 1, borrowedBy }
             }
-            return b;
-        });
+            return b
+        })
 
-        setList(newList);
-        localStorage.setItem('Books', JSON.stringify(newList));
+        setList(newList)
+        localStorage.setItem('Books', JSON.stringify(newList))
     }
 
-
-
     const handleReturnBook = (id) => {
-        const currentUser = JSON.parse(localStorage.getItem('user'));
+        const currentUser = JSON.parse(localStorage.getItem('user'))
+
         const newList = list.map(b => {
             if (b.id === id && b.borrowedBy?.includes(currentUser.id)) {
-                const updatedBorrowedBy = b.borrowedBy.filter(uid => uid !== currentUser.id);
-                return { ...b, borrowed: b.borrowed - 1, borrowedBy: updatedBorrowedBy };
+                const updatedBorrowedBy = b.borrowedBy.filter(uid => uid !== currentUser.id)
+                return { ...b, borrowed: b.borrowed - 1, borrowedBy: updatedBorrowedBy }
             }
-            return b;
-        });
+            return b
+        })
 
-        setList(newList);
-        localStorage.setItem('Books', JSON.stringify(newList));
-    };
-
+        setList(newList)
+        localStorage.setItem('Books', JSON.stringify(newList))
+    }
 
     const handleRemoveAllBooks = () => {
-        const currentUser = JSON.parse(localStorage.getItem('user'));
+        const currentUser = JSON.parse(localStorage.getItem('user'))
+
         const newList = list.map(b => {
-            if (!b.borrowedBy) return b;
-            const updatedBorrowedBy = b.borrowedBy.filter(uid => uid !== currentUser.id);
-            return { ...b, borrowed: updatedBorrowedBy.length, borrowedBy: updatedBorrowedBy };
-        });
+            if (!b.borrowedBy) return b
+            const updatedBorrowedBy = b.borrowedBy.filter(uid => uid !== currentUser.id)
+            return { ...b, borrowed: updatedBorrowedBy.length, borrowedBy: updatedBorrowedBy }
+        })
 
-        setList(newList);
-        localStorage.setItem('Books', JSON.stringify(newList));
-    };
-
+        setList(newList)
+        localStorage.setItem('Books', JSON.stringify(newList))
+    }
 
     return {
         list,
@@ -149,6 +160,6 @@ export const useBooks = () => {
         currentItem,
         currentPage,
         totalPage,
-        setCurrentPage,
+        setCurrentPage
     }
 }
