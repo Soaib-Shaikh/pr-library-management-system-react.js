@@ -4,22 +4,29 @@ import { useBooks } from '../../../hooks/useBooks'
 function NewBook() {
   const { list, handleBorrowBook } = useBooks()
 
-  const INITIAL_COUNT = 4
-  const [showAll, setShowAll] = useState(false)
+  const STEP = 4 // kitni books ek baar me add ho
+  const [visibleCount, setVisibleCount] = useState(STEP)
   const [booksToShow, setBooksToShow] = useState([])
 
   useEffect(() => {
     const availableBooks = list.filter(book => book.count > 0)
     setBooksToShow(availableBooks)
+    setVisibleCount(STEP) // reset when list changes
   }, [list])
 
-  const visibleBooks = showAll
-    ? booksToShow
-    : booksToShow.slice(0, INITIAL_COUNT)
+  const visibleBooks = booksToShow.slice(0, visibleCount)
 
-  const handleToggle = () => {
-    setShowAll(prev => !prev)
+  const handleExploreMore = () => {
+    if (visibleCount >= booksToShow.length) {
+      // 🔁 reset
+      setVisibleCount(STEP)
+    } else {
+      // ➕ show next batch
+      setVisibleCount(prev => prev + STEP)
+    }
   }
+
+  const isAllVisible = visibleCount >= booksToShow.length
 
   return (
     <section className="new-books">
@@ -34,7 +41,11 @@ function NewBook() {
                   <img
                     src={book.image}
                     alt={book.bookName}
-                    style={{ width: '100%', height: '200px', objectFit: 'cover' }}
+                    style={{
+                      width: '100%',
+                      height: '200px',
+                      objectFit: 'cover'
+                    }}
                   />
                   <span className="position-absolute top-0 start-0 badge bg-success m-2">
                     New
@@ -63,20 +74,19 @@ function NewBook() {
           ))}
         </div>
 
-        {/* ===== TOGGLE BUTTON ===== */}
-        {booksToShow.length > INITIAL_COUNT && (
+        {/* ===== LOAD MORE / RESET ===== */}
+        {booksToShow.length > STEP && (
           <div className="text-center mt-4">
             <button
               className="btn btn-outline-primary px-4"
-              onClick={handleToggle}
+              onClick={handleExploreMore}
             >
-              {showAll ? 'Show Less' : 'Explore More Books'}
+              {isAllVisible ? 'Show Less' : 'Explore More Books'}
             </button>
           </div>
         )}
       </div>
 
-      {/* ===== CSS ===== */}
       <style>{`
         h3 {
           color: #0d6efd;
