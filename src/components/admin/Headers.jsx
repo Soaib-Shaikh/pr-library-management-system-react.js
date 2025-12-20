@@ -3,20 +3,35 @@ import { NavLink } from 'react-router'
 
 function Headers({ handleLogout }) {
 
-  // ✅ ADD STATE (sirf ye add hua)
+  // ✅ ADD STATE (only this line new)
   const [open, setOpen] = useState(false)
 
   return (
     <div>
 
-      {/* ✅ CSS ONLY FOR TOGGLE (andar hi) */}
+      {/* ✅ CSS FORCE FIX (template override) */}
       <style>{`
         .app-sidepanel {
-          transform: translateX(-100%);
-          transition: 0.3s ease;
+          position: fixed !important;
+          top: 0;
+          left: 0;
+          height: 100vh;
+          width: 260px;
+          z-index: 9999;
+          background: #fff;
+          transform: translateX(-100%) !important;
+          transition: transform 0.3s ease;
         }
+
         .app-sidepanel.sidepanel-visible {
-          transform: translateX(0);
+          transform: translateX(0) !important;
+        }
+
+        .sidepanel-drop {
+          position: fixed;
+          inset: 0;
+          background: rgba(0,0,0,0.4);
+          z-index: 9998;
         }
       `}</style>
 
@@ -38,13 +53,8 @@ function Headers({ handleLogout }) {
                     }}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width={30} height={30} viewBox="0 0 30 30">
-                      <path
-                        stroke="currentColor"
-                        strokeLinecap="round"
-                        strokeMiterlimit={10}
-                        strokeWidth={2}
-                        d="M4 7h22M4 15h22M4 23h22"
-                      />
+                      <path stroke="currentColor" strokeLinecap="round" strokeMiterlimit={10} strokeWidth={2}
+                        d="M4 7h22M4 15h22M4 23h22" />
                     </svg>
                   </NavLink>
                 </div>
@@ -78,13 +88,18 @@ function Headers({ handleLogout }) {
           id="app-sidepanel"
           className={`app-sidepanel ${open ? "sidepanel-visible" : ""}`}
         >
-          <div
-            id="sidepanel-drop"
-            className="sidepanel-drop"
-            onClick={() => setOpen(false)}
-          />
+
+          {open && (
+            <div
+              id="sidepanel-drop"
+              className="sidepanel-drop"
+              onClick={() => setOpen(false)}
+            />
+          )}
 
           <div className="sidepanel-inner d-flex flex-column">
+
+            {/* 🔥 SAME CLOSE – ONLY onClick ADDED */}
             <NavLink
               to="#"
               id="sidepanel-close"
@@ -114,8 +129,8 @@ function Headers({ handleLogout }) {
                   </NavLink>
                 </li>
 
-                <li className="nav-item">
-                  <NavLink className="nav-link" to="/admin/add-book">
+                <li className="nav-item has-submenu">
+                  <NavLink className="nav-link submenu-toggle" to="/admin/add-book">
                     <span className="nav-link-text">Add Book</span>
                   </NavLink>
                 </li>
