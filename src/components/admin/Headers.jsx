@@ -8,7 +8,7 @@ function Headers({ handleLogout }) {
   return (
     <div>
 
-      {/* ✅ CSS INSIDE COMPONENT */}
+      {/* ✅ CSS INSIDE COMPONENT (TOGGLE + SPACE FIX) */}
       <style>{`
         .app-sidepanel {
           transform: translateX(-100%);
@@ -17,6 +17,25 @@ function Headers({ handleLogout }) {
 
         .app-sidepanel.sidepanel-visible {
           transform: translateX(0);
+        }
+
+        /* 🔥 MOBILE SPACE FIX */
+        @media (max-width: 991px) {
+          body {
+            overflow-x: hidden;
+          }
+
+          .app-wrapper,
+          .content,
+          .page-content,
+          .container,
+          .container-fluid {
+            margin-left: 0 !important;
+            padding-left: 12px !important;
+            padding-right: 12px !important;
+            width: 100% !important;
+            max-width: 100% !important;
+          }
         }
       `}</style>
 
@@ -68,7 +87,7 @@ function Headers({ handleLogout }) {
           </div>
         </div>
 
-        {/* ✅ SIDE PANEL */}
+        {/* SIDE PANEL */}
         <div
           id="app-sidepanel"
           className={`app-sidepanel ${open ? "sidepanel-visible" : ""}`}
