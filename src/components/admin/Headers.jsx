@@ -36,6 +36,7 @@ function Headers({ handleLogout }) {
             z-index: 9999;
             transform: translateX(-100%);
             transition: transform 0.3s ease;
+            pointer-events: auto;
           }
 
           .app-sidepanel.open {
@@ -57,7 +58,7 @@ function Headers({ handleLogout }) {
             <div className="app-header-content">
               <div className="row align-items-center header-row">
 
-                {/* ☰ TOGGLE (already hidden on desktop via d-xl-none) */}
+                {/* ☰ TOGGLE (mobile / tablet only) */}
                 <div className="col-auto">
                   <NavLink
                     id="sidepanel-toggler"
@@ -104,7 +105,7 @@ function Headers({ handleLogout }) {
           </div>
         </div>
 
-        {/* SIDEPANEL (same markup) */}
+        {/* SIDEPANEL */}
         <div
           id="app-sidepanel"
           className={`app-sidepanel ${open ? "open" : ""}`}
@@ -130,9 +131,12 @@ function Headers({ handleLogout }) {
               ×
             </NavLink>
 
-            {/* 👇 below unchanged */}
             <div className="app-branding">
-              <NavLink className="app-logo" to="/admin">
+              <NavLink
+                className="app-logo"
+                to="/admin"
+                onClick={() => setOpen(false)}
+              >
                 <img className="logo-icon me-2" src="/assets/images/app-logo.svg" alt="logo" />
                 <span className="logo-text">Library</span>
               </NavLink>
@@ -141,13 +145,33 @@ function Headers({ handleLogout }) {
             <nav className="app-nav app-nav-main flex-grow-1">
               <ul className="app-menu list-unstyled accordion">
                 <li className="nav-item">
-                  <NavLink className="nav-link active" to="/admin">Dashboard</NavLink>
+                  <NavLink
+                    className="nav-link active"
+                    to="/admin"
+                    onClick={() => setOpen(false)}
+                  >
+                    Dashboard
+                  </NavLink>
                 </li>
+
                 <li className="nav-item">
-                  <NavLink className="nav-link" to="/admin/add-book">Add Book</NavLink>
+                  <NavLink
+                    className="nav-link"
+                    to="/admin/add-book"
+                    onClick={() => setOpen(false)}
+                  >
+                    Add Book
+                  </NavLink>
                 </li>
+
                 <li className="nav-item">
-                  <NavLink className="nav-link" to="/admin/view-books">View Books</NavLink>
+                  <NavLink
+                    className="nav-link"
+                    to="/admin/view-books"
+                    onClick={() => setOpen(false)}
+                  >
+                    View Books
+                  </NavLink>
                 </li>
               </ul>
             </nav>
