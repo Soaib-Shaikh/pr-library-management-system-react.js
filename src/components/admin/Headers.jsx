@@ -2,8 +2,6 @@ import React from 'react'
 import { NavLink} from 'react-router'
 
 function Headers({handleLogout}) {
-    
-
     return (
         
         <div >
