@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router'
+import { useNavigate } from 'react-router-dom'
 
 export const useBooks = () => {
   const [list, setList] = useState([])
@@ -14,147 +14,111 @@ export const useBooks = () => {
   const currentItem = list.slice(firstIndex, lastIndex)
   const totalPage = Math.ceil(list.length / itemsPerPage)
 
+  // 🔹 LOAD BOOKS
   useEffect(() => {
-    const oldList = JSON.parse(localStorage.getItem('Books')) || []
-
-    const fixedList = oldList.map(b => {
-      const borrowedBy = Array.isArray(b.borrowedBy) ? b.borrowedBy : []
-      return {
-        ...b,
-        count: Number(b.count) || 0,
-        borrowedBy,
-        borrowed: borrowedBy.length 
-      }
-    })
-
-    setList(fixedList)
-    localStorage.setItem('Books', JSON.stringify(fixedList))
+    fetchBooks()
   }, [])
+
+  const fetchBooks = async () => {
+    const res = await fetch('http://localhost:3000/books')
+    const data = await res.json()
+    setList(data)
+  }
 
   const handleChange = (e) => {
     const { name, value } = e.target
     setBook(prev => ({ ...prev, [name]: value }))
   }
 
-  const handleSubmit = (e) => {
+  // 🔹 ADD / UPDATE
+  const handleSubmit = async (e) => {
     e.preventDefault()
 
-    let newList
     if (book.id) {
-      newList = list.map(b =>
-        b.id === book.id
-          ? { ...b, ...book }
-          : b
-      )
+      // UPDATE
+      await fetch(`http://localhost:3000/books/${book.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(book)
+      })
     } else {
-      newList = [
-        ...list,
-        {
+      // ADD
+      await fetch('http://localhost:3000/books', {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
           ...book,
-          id: Date.now(),
-          count: Number(book.count) || 1,
           borrowedBy: [],
           borrowed: 0
-        }
-      ]
+        })
+      })
     }
 
-    setList(newList)
-    localStorage.setItem('Books', JSON.stringify(newList))
     setBook({})
-    setCurrentPage(1)
+    fetchBooks()
     navigate('/admin/view-books')
   }
 
-  const handleDelete = (id) => {
-    const newList = list.filter(b => b.id !== id)
-    setList(newList)
-    localStorage.setItem('Books', JSON.stringify(newList))
+  // 🔹 DELETE
+  const handleDelete = async (id) => {
+    await fetch(`http://localhost:3000/books/${id}`, {
+      method: "DELETE"
+    })
+    fetchBooks()
   }
 
+  // 🔹 EDIT
   const handleEdit = (id) => {
     const editData = list.find(b => b.id === id)
-    setBook(editData)
+    setBook({ ...editData })
     navigate('/admin/add-book')
   }
 
-  const handleBorrowBook = (id) => {
+  // 🔹 BORROW
+  const handleBorrowBook = async (book) => {
     const currentUser = JSON.parse(localStorage.getItem('user'))
-    if (!currentUser?.id) {
-      alert('Login first')
+    if (!currentUser) return alert("Login first")
+
+    if (book.borrowedBy.includes(currentUser.id)) return
+
+    if (book.borrowedBy.length >= book.count) {
+      alert("Out of stock")
       return
     }
 
-    const newList = list.map(b => {
-      if (b.id === id) {
-        if (b.borrowedBy.includes(currentUser.id)) {
-          alert('You already borrowed this book')
-          return b
-        }
+    const updated = {
+      ...book,
+      borrowedBy: [...book.borrowedBy, currentUser.id],
+      borrowed: book.borrowedBy.length + 1
+    }
 
-        if (b.borrowedBy.length >= b.count) {
-          alert('Out of stock')
-          return b
-        }
-
-        const updatedBorrowedBy = [...b.borrowedBy, currentUser.id]
-
-        return {
-          ...b,
-          borrowedBy: updatedBorrowedBy,
-          borrowed: updatedBorrowedBy.length 
-        }
-      }
-      return b
+    await fetch(`http://localhost:3000/books/${book.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(updated)
     })
 
-    setList(newList)
-    localStorage.setItem('Books', JSON.stringify(newList))
+    fetchBooks()
   }
 
-  const handleReturnBook = (id) => {
+  // 🔹 RETURN
+  const handleReturnBook = async (book) => {
     const currentUser = JSON.parse(localStorage.getItem('user'))
-    if (!currentUser?.id) return
+    if (!currentUser) return
 
-    const newList = list.map(b => {
-      if (b.id === id && b.borrowedBy.includes(currentUser.id)) {
-        const updatedBorrowedBy = b.borrowedBy.filter(
-          uid => uid !== currentUser.id
-        )
+    const updated = {
+      ...book,
+      borrowedBy: book.borrowedBy.filter(id => id !== currentUser.id),
+      borrowed: book.borrowedBy.length - 1
+    }
 
-        return {
-          ...b,
-          borrowedBy: updatedBorrowedBy,
-          borrowed: updatedBorrowedBy.length 
-        }
-      }
-      return b
+    await fetch(`http://localhost:3000/books/${book.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(updated)
     })
 
-    setList(newList)
-    localStorage.setItem('Books', JSON.stringify(newList))
-  }
-
-  const handleRemoveAllBooks = () => {
-    const currentUser = JSON.parse(localStorage.getItem('user'))
-    if (!currentUser?.id) return
-
-    const newList = list.map(b => {
-      if (!b.borrowedBy.includes(currentUser.id)) return b
-
-      const updatedBorrowedBy = b.borrowedBy.filter(
-        uid => uid !== currentUser.id
-      )
-
-      return {
-        ...b,
-        borrowedBy: updatedBorrowedBy,
-        borrowed: updatedBorrowedBy.length 
-      }
-    })
-
-    setList(newList)
-    localStorage.setItem('Books', JSON.stringify(newList))
+    fetchBooks()
   }
 
   return {
@@ -167,7 +131,6 @@ export const useBooks = () => {
     handleEdit,
     handleBorrowBook,
     handleReturnBook,
-    handleRemoveAllBooks,
     currentItem,
     currentPage,
     totalPage,

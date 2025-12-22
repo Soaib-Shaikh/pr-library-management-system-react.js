@@ -1,0 +1,23 @@
+{
+  "books": [
+    {
+      "id": "01c6",
+      "image": "https://www.jymihaditodon.cc",
+      "bookName": "Felicia Henry",
+      "author": "Id consequatur Cum",
+      "count": "11",
+      "category": "Science",
+      "borrowedBy": [],
+      "borrowed": 0
+    }
+  ],
+  "users": [
+    {
+      "id": 1766412428765,
+      "username": "Sam",
+      "email": "sam@gmail.com",
+      "password": "1234"
+    }
+  ],
+  "borrow": []
+}

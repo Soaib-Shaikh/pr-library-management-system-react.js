@@ -3,23 +3,22 @@ import { NavLink, useNavigate } from 'react-router-dom'
 
 function Signup() {
   const [user, setUser] = useState({})
-  const [userList, setUserList] = useState([])
   const navigate = useNavigate()
-
-  useEffect(() => {
-    const oldList = JSON.parse(localStorage.getItem('users')) || []
-    setUserList(oldList)
-  }, [])
 
   const handleChange = (e) => {
     const { name, value } = e.target
     setUser({ ...user, [name]: value })
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    const newUsers = [...userList, { ...user, id: Date.now() }]
-    localStorage.setItem('users', JSON.stringify(newUsers))
+
+    await fetch('http://localhost:3000/users', {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...user, id: Date.now() })
+    })
+
     navigate('/login')
   }
 

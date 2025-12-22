@@ -3,32 +3,33 @@ import { NavLink, useNavigate } from 'react-router-dom'
 
 function Login() {
   const [user, setUser] = useState({})
-  const [userList, setUserList] = useState([])
   const navigate = useNavigate()
-
-  useEffect(() => {
-    const oldList = JSON.parse(localStorage.getItem('users')) || []
-    setUserList(oldList)
-  }, [])
 
   const handleChange = (e) => {
     const { name, value } = e.target
     setUser({ ...user, [name]: value })
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
 
-    const foundUser = userList.find(
-      u => u.email === user.email && u.password === user.password
+    const res = await fetch(
+      `http://localhost:3000/users?email=${user.email}`
     )
+    const data = await res.json()
 
-    if (foundUser) {
-      localStorage.setItem('user', JSON.stringify(foundUser))
-      navigate('/')
-    } else {
-      alert('Invalid Email or Password')
+    if (data.length === 0) {
+      alert("User not found")
+      return
     }
+
+    if (data[0].password !== user.password) {
+      alert("Wrong password")
+      return
+    }
+
+    localStorage.setItem('user', JSON.stringify(data[0]))
+    navigate('/')
   }
 
   return (
