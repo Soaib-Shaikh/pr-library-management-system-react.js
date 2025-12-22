@@ -6,7 +6,6 @@ export const useBooks = () => {
   const [book, setBook] = useState({})
   const navigate = useNavigate()
 
-  // ===== PAGINATION =====
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 5
 
@@ -15,7 +14,6 @@ export const useBooks = () => {
   const currentItem = list.slice(firstIndex, lastIndex)
   const totalPage = Math.ceil(list.length / itemsPerPage)
 
-  // ===== LOAD BOOKS =====
   useEffect(() => {
     const oldList = JSON.parse(localStorage.getItem('Books')) || []
 
@@ -25,7 +23,7 @@ export const useBooks = () => {
         ...b,
         count: Number(b.count) || 0,
         borrowedBy,
-        borrowed: borrowedBy.length // ✅ SINGLE SOURCE OF TRUTH
+        borrowed: borrowedBy.length 
       }
     })
 
@@ -33,7 +31,6 @@ export const useBooks = () => {
     localStorage.setItem('Books', JSON.stringify(fixedList))
   }, [])
 
-  // ===== FORM =====
   const handleChange = (e) => {
     const { name, value } = e.target
     setBook(prev => ({ ...prev, [name]: value }))
@@ -69,7 +66,6 @@ export const useBooks = () => {
     navigate('/admin/view-books')
   }
 
-  // ===== CRUD =====
   const handleDelete = (id) => {
     const newList = list.filter(b => b.id !== id)
     setList(newList)
@@ -82,7 +78,6 @@ export const useBooks = () => {
     navigate('/admin/add-book')
   }
 
-  // ===== BORROW BOOK =====
   const handleBorrowBook = (id) => {
     const currentUser = JSON.parse(localStorage.getItem('user'))
     if (!currentUser?.id) {
@@ -107,7 +102,7 @@ export const useBooks = () => {
         return {
           ...b,
           borrowedBy: updatedBorrowedBy,
-          borrowed: updatedBorrowedBy.length // ✅ FIX
+          borrowed: updatedBorrowedBy.length 
         }
       }
       return b
@@ -117,7 +112,6 @@ export const useBooks = () => {
     localStorage.setItem('Books', JSON.stringify(newList))
   }
 
-  // ===== RETURN SINGLE BOOK =====
   const handleReturnBook = (id) => {
     const currentUser = JSON.parse(localStorage.getItem('user'))
     if (!currentUser?.id) return
@@ -131,7 +125,7 @@ export const useBooks = () => {
         return {
           ...b,
           borrowedBy: updatedBorrowedBy,
-          borrowed: updatedBorrowedBy.length // ✅ FIX
+          borrowed: updatedBorrowedBy.length 
         }
       }
       return b
@@ -141,7 +135,6 @@ export const useBooks = () => {
     localStorage.setItem('Books', JSON.stringify(newList))
   }
 
-  // ===== RETURN ALL BOOKS OF USER =====
   const handleRemoveAllBooks = () => {
     const currentUser = JSON.parse(localStorage.getItem('user'))
     if (!currentUser?.id) return
@@ -156,7 +149,7 @@ export const useBooks = () => {
       return {
         ...b,
         borrowedBy: updatedBorrowedBy,
-        borrowed: updatedBorrowedBy.length // ✅ FIX
+        borrowed: updatedBorrowedBy.length 
       }
     })
 
